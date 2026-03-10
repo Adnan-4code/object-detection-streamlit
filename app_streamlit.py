@@ -6,49 +6,47 @@ import cv2, tempfile, os, glob
 import pandas as pd
 from pathlib import Path
 
-
 st.set_page_config(page_title="Object Detection Model", layout="wide")
 
 background_url = "https://images.unsplash.com/photo-1498050108023-c5249f4df085"
 
-
 st.markdown(
-   f"""
+   """
    <style>
-   .stApp {{
+   .stApp {
        background-color: #f5f7fa;
-   }}
+   }
 
-   section[data-testid="stSidebar"] {{
+   section[data-testid="stSidebar"] {
        background: #ffffff;
        border-radius: 12px;
        padding: 10px;
        border: 1px solid #e6e6e6;
-   }}
+   }
 
-   div[data-testid="stFileUploader"] {{
+   div[data-testid="stFileUploader"] {
        background: #ffffff;
        border-radius: 12px;
        padding: 15px;
        border: 1px solid #e6e6e6;
-   }}
+   }
 
-   .stDataFrame {{
+   .stDataFrame {
        background: #ffffff;
        border-radius: 12px;
        padding: 10px;
        border: 1px solid #e6e6e6;
-   }}
+   }
 
-   h1, h2, h3, h4, h5, h6 {{
+   h1, h2, h3, h4, h5, h6 {
        color: #2c3e50 !important;
        font-weight: 600;
-   }}
+   }
 
-   p, label, span, div {{
+   p, label, span, div {
        color: #4a4a4a !important;
        font-weight: 400;
-   }}
+   }
    </style>
    """,
    unsafe_allow_html=True
@@ -70,9 +68,11 @@ img_size = st.sidebar.selectbox(
 )
 
 
+# ✅ FIXED MODEL LOADING
 @st.cache_resource
-def load_model(weights_path="yolov8n.pt"):
-    return YOLO(weights_path)
+def load_model(weights_path):
+    model = YOLO(weights_path)
+    return model
 
 
 def save_uploaded_file(uploaded_file, suffix=""):
@@ -116,11 +116,13 @@ def annotate_and_table(results, model):
     return annotated, pd.DataFrame(detections)
 
 
+# default model
 weights_to_load = "yolov8n.pt"
 
 if uploaded_weights:
     weights_to_load = save_uploaded_file(uploaded_weights, suffix=".pt")
     st.sidebar.success("Using uploaded weights")
+
 
 model = load_model(weights_to_load)
 
