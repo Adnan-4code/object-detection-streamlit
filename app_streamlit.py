@@ -187,12 +187,18 @@ elif mode == "Video upload":
 
     if uploaded_vid:
 
+        # Prevent large videos crashing Streamlit
+        if uploaded_vid.size > 50 * 1024 * 1024:
+            st.error("Video too large. Please upload a video smaller than 50MB.")
+            st.stop()
+
         tmp = save_uploaded_file(uploaded_vid)
 
         st.video(tmp)
 
         project_dir = tempfile.mkdtemp()
 
+        # Use streaming inference to avoid RAM crash
         results = model.predict(
             source=tmp,
             conf=conf,
@@ -200,26 +206,34 @@ elif mode == "Video upload":
             project=project_dir,
             name="run",
             save=True,
+            stream=True
         )
 
         try:
-            out_dir = str(results[0].save_dir)
+            # iterate through generator to finish processing
+            last_result = None
+            for r in results:
+                last_result = r
 
-            vids = glob.glob(os.path.join(out_dir, "*"))
+            if last_result:
+                out_dir = str(last_result.save_dir)
 
-            vids = [
-                v
-                for v in vids
-                if Path(v).suffix.lower()
-                in [".mp4", ".avi", ".mov", ".mkv"]
-            ]
+                vids = glob.glob(os.path.join(out_dir, "*"))
 
-            if vids:
-                st.success("Annotated video")
-                st.video(vids[0])
+                vids = [
+                    v
+                    for v in vids
+                    if Path(v).suffix.lower()
+                    in [".mp4", ".avi", ".mov", ".mkv"]
+                ]
+
+                if vids:
+                    st.success("Annotated video")
+                    st.video(vids[0])
 
         except:
             st.warning("Could not display annotated video")
+
 
 
 
