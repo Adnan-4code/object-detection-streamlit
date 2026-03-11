@@ -1,16 +1,25 @@
 import streamlit as st
 import torch
+
+# ---- FIX FOR PYTORCH 2.6 SAFE LOADING ----
+import ultralytics
 from ultralytics import YOLO
 from ultralytics.nn.tasks import DetectionModel
+from ultralytics.nn.modules import Conv
+
 from torch.nn.modules.container import Sequential
+
+torch.serialization.add_safe_globals([
+    DetectionModel,
+    Sequential,
+    Conv
+])
+
 import numpy as np
 from PIL import Image
 import cv2, tempfile, os, glob
 import pandas as pd
 from pathlib import Path
-
-# allow pytorch safe loading
-torch.serialization.add_safe_globals([DetectionModel, Sequential])
 
 st.set_page_config(page_title="Object Detection Model", layout="wide")
 
@@ -201,5 +210,6 @@ elif mode == "Video upload":
 
         except:
             st.warning("Could not display annotated video")
+
 
 
