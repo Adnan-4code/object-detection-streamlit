@@ -86,6 +86,16 @@ img_size = st.sidebar.selectbox(
 # ✅ FIXED MODEL LOADING
 @st.cache_resource
 def load_model(weights_path):
+
+    # 🔧 Patch torch.load to disable weights_only restriction
+    original_load = torch.load
+
+    def patched_load(*args, **kwargs):
+        kwargs["weights_only"] = False
+        return original_load(*args, **kwargs)
+
+    torch.load = patched_load
+
     model = YOLO(weights_path)
     return model
 
@@ -210,6 +220,7 @@ elif mode == "Video upload":
 
         except:
             st.warning("Could not display annotated video")
+
 
 
 
