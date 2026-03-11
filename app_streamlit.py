@@ -2,13 +2,15 @@ import streamlit as st
 import torch
 from ultralytics import YOLO
 from ultralytics.nn.tasks import DetectionModel
+from torch.nn.modules.container import Sequential
 import numpy as np
 from PIL import Image
 import cv2, tempfile, os, glob
 import pandas as pd
 from pathlib import Path
 
-torch.serialization.add_safe_globals([DetectionModel])
+# allow pytorch safe loading
+torch.serialization.add_safe_globals([DetectionModel, Sequential])
 
 st.set_page_config(page_title="Object Detection Model", layout="wide")
 
@@ -199,4 +201,5 @@ elif mode == "Video upload":
 
         except:
             st.warning("Could not display annotated video")
+
 
