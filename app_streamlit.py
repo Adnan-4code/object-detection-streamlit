@@ -187,7 +187,6 @@ elif mode == "Video upload":
 
     if uploaded_vid:
 
-        # Prevent very large videos crashing Streamlit
         if uploaded_vid.size > 50 * 1024 * 1024:
             st.error("Video too large. Please upload a video smaller than 50MB.")
             st.stop()
@@ -198,7 +197,6 @@ elif mode == "Video upload":
 
         project_dir = tempfile.mkdtemp()
 
-        # Run YOLO with streaming
         results = model.predict(
             source=tmp,
             conf=conf,
@@ -209,20 +207,14 @@ elif mode == "Video upload":
             stream=True
         )
 
-        # Important: run generator fully so video gets saved
-        last = None
-        for r in results:
-            last = r
+        # Run generator fully
+        for _ in results:
+            pass
 
         try:
             out_dir = os.path.join(project_dir, "run")
 
-            vids = glob.glob(os.path.join(out_dir, "*"))
-
-            vids = [
-                v for v in vids
-                if Path(v).suffix.lower() in [".mp4", ".avi", ".mov", ".mkv"]
-            ]
+            vids = glob.glob(os.path.join(out_dir, "*.mp4"))
 
             if vids:
                 st.success("Annotated video")
