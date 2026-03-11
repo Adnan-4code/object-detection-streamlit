@@ -187,7 +187,7 @@ elif mode == "Video upload":
 
     if uploaded_vid:
 
-        # Prevent large videos crashing Streamlit
+        # Prevent very large videos crashing Streamlit
         if uploaded_vid.size > 50 * 1024 * 1024:
             st.error("Video too large. Please upload a video smaller than 50MB.")
             st.stop()
@@ -198,7 +198,7 @@ elif mode == "Video upload":
 
         project_dir = tempfile.mkdtemp()
 
-        # Use streaming inference to avoid RAM crash
+        # Run YOLO with streaming
         results = model.predict(
             source=tmp,
             conf=conf,
@@ -209,31 +209,29 @@ elif mode == "Video upload":
             stream=True
         )
 
+        # Important: run generator fully so video gets saved
+        last = None
+        for r in results:
+            last = r
+
         try:
-            # iterate through generator to finish processing
-            last_result = None
-            for r in results:
-                last_result = r
+            out_dir = os.path.join(project_dir, "run")
 
-            if last_result:
-                out_dir = str(last_result.save_dir)
+            vids = glob.glob(os.path.join(out_dir, "*"))
 
-                vids = glob.glob(os.path.join(out_dir, "*"))
+            vids = [
+                v for v in vids
+                if Path(v).suffix.lower() in [".mp4", ".avi", ".mov", ".mkv"]
+            ]
 
-                vids = [
-                    v
-                    for v in vids
-                    if Path(v).suffix.lower()
-                    in [".mp4", ".avi", ".mov", ".mkv"]
-                ]
+            if vids:
+                st.success("Annotated video")
+                st.video(vids[0])
+            else:
+                st.warning("Annotated video not found")
 
-                if vids:
-                    st.success("Annotated video")
-                    st.video(vids[0])
-
-        except:
-            st.warning("Could not display annotated video")
-
+        except Exception as e:
+            st.error("Error displaying annotated video")
 
 
 
